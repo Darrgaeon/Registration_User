@@ -1,0 +1,44 @@
+@import "./functions"
+@import "vars"
+
+*::-webkit-input-placeholder
+	color: #666
+	opacity: 1
+
+*:-moz-placeholder
+	color: #666
+	opacity: 1
+
+*::-moz-placeholder
+	color: #666
+	opacity: 1
+
+*:-ms-input-placeholder
+	color: #666
+	opacity: 1
+
+body input:focus:required:invalid,
+body textarea:focus:required:invalid
+	color: #666
+body input:required:valid,
+body textarea:required:valid
+	color: #666
+
+body
+	background: $background-color
+	color: #333
+	font-family: $font-base
+	font-size: $font-size-base
+	line-height: normal
+	min-width: 320px
+	overflow-x: auto
+	position: relative
+	display: flex
+	flex-direction: column
+	min-height: 100vh
+
+a
+	outline: 0
+
+.hidden
+	display: none

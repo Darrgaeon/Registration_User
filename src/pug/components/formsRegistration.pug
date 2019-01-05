@@ -1,0 +1,19 @@
+form#formRegistration
+    .container.form-group
+        label(for="login") Login:
+        input.form-control#login(type="text", name="login")
+        span
+    .container.form-group
+        label(for="password") Password:
+        input.form-control#password(type="password", name="password")
+        span
+    .container.form-group
+        label(for="password-check") Check password:
+        input.form-control#password-check(type="password", name="password-check")
+        span
+    .container.form-group
+        label(for="email") Email:
+        input.form-control#email(type="email", name="email")
+        span
+    .container.panel-body
+        button.btn.btn-sm.btn-primary#submit(type="submit", disabled="true") Save
