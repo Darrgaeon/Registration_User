@@ -7,7 +7,8 @@ function init() {
     require("svg4everybody/dist/svg4everybody")();
 
     $(document).ready(function () {
-        require("./components/registration");
+        // require("./components/registration");
+        require("./components/registrationForm");
     });
 }
 
