@@ -4,30 +4,28 @@ const MongoClient = require("mongodb").MongoClient;
 const nodemailer = require("nodemailer");
 const app = express();
 const jsonParser = bodyParser.json();
-// const config = require("./etc/config");
+const config = require("../etc/config");
+const mongoClient = new MongoClient(config.apiDB, {useNewUrlParser: true});
+
 const directWebPage = "verifyUserEmail.html";
 const randNumber = Math.floor((Math.random() * 100) + 54);
-const mongoClient = new MongoClient("mongodb://localhost:27017/", {useNewUrlParser: true});
-// const MD5 = require("./components/md5");
-
-let dbClient;
 
 const dir = `${process.env.INIT_CWD}/docs/`;
 app.use(express.static(dir));
 
+
+let dbClient;
 mongoClient.connect(function (err, client) {
     if (err) {
         return console.log(err);
     }
 
     dbClient = client;
-    app.locals.collection = client.db("usersdb").collection("users");
+    app.locals.collection = client.db(config.db.name).collection(config.db.collection);
 });
 
 
-app.get("/api/users", function (req, res) {
-
-    console.log("get");
+app.get(config.api, function (req, res) {
 
     const collection = req.app.locals.collection;
     collection.find({}).toArray(function (err, users) {
@@ -43,25 +41,23 @@ app.get("/api/users", function (req, res) {
 });
 
 
-app.post("/api/users", jsonParser, function (req, res) {
+app.post(config.api, jsonParser, function (req, res) {
 
     if (!req.body) {
         return res.sendStatus(400);
     }
 
-    console.log("req.body.password", req.body.password);
-
     let user = {
         login: req.body.login,
         password: req.body.password,
         email: req.body.email,
-        checkMail: 0
+        actionMail: false
     };
 
     const col = req.app.locals.collection;
 
 
-    //добавление пользователя
+    //add user
     col.insertOne(user, function (err, result) {
         if (err) {
             return res.status(400).send();
@@ -75,7 +71,7 @@ app.post("/api/users", jsonParser, function (req, res) {
     console.log(linkConfirmationOfRegistration);
 
 
-    //отправка письма на почту
+    //send letter on email
     nodemailer.createTestAccount((err) => {
         if (err) {
             console.error("Failed to create a testing account. " + err.message);
@@ -83,18 +79,18 @@ app.post("/api/users", jsonParser, function (req, res) {
         }
 
         const transporter = nodemailer.createTransport({
-            service: "yandex",
+            service: config.service,
             auth: {
-                user: "testdarg", // generated ethereal user
-                pass: "runesofmagic" // generated ethereal password
+                user: config.userEmail,
+                pass: config.userPassword
             }
         });
 
-        let message = {
-            from: "Server <testdarg@yandex.ru>", // sender address
+        const message = {
+            from: config.message.from,
             to: user.email,
-            subject: "Registration account",
-            text: "Confirm registration",
+            subject: config.message.subject,
+            text: config.message.text,
             html: `<b>Login:</b>${user.login}<br>
                    <b>Password:</b>${user.password}<br>
                    <b>Email:</b>${user.email}<br>
@@ -113,16 +109,16 @@ app.post("/api/users", jsonParser, function (req, res) {
 });
 
 
-app.get("/verifyUserEmail.html", function (req, res) {
+app.get(config.verify, function (req, res) {
 
     console.log("Check mail confirmation");
 
-    if ((`${req.protocol}://${req.get("host")}`) === ("http://localhost:3000")) {
+    if ((`${req.protocol}://${req.get("host")}`) === (config.localhost)) {
         if (parseInt(req.query.id) === randNumber) {
             console.log("email is verified");
             res.end("<h1>Email is been Successfully verified</h1>");
 
-            const mongoClient = new MongoClient("mongodb://localhost:27017/", {useNewUrlParser: true});
+            const mongoClient = new MongoClient(config.apiDB, {useNewUrlParser: true});
 
             mongoClient.connect(function (err, client) {
                 if (err) {
@@ -130,12 +126,12 @@ app.get("/verifyUserEmail.html", function (req, res) {
                 }
 
                 dbClient = client;
-                app.locals.collection = client.db("usersdb").collection("users");
+                app.locals.collection = client.db(config.db.name).collection(config.db.collection);
                 const col = req.app.locals.collection;
 
                 col.findOneAndUpdate(
                     {email: req.query.email}, // критерий выборки
-                    {$set: {checkMail: 1}}, // параметр обновления
+                    {$set: {actionMail: true}}, // параметр обновления
                     function (err, result) {
                         console.log(result);
                     }
@@ -147,8 +143,8 @@ app.get("/verifyUserEmail.html", function (req, res) {
     }
 });
 
-app.listen(3000, function () {
-    console.log("Сервер подключен");
+app.listen(config.serverPort, function () {
+    console.log(`Server start on ${config.serverPort}`);
 });
 
 

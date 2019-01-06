@@ -1,8 +1,13 @@
 module.exports = (function () {
     const md5 = require("./md5");
+    const config = require("../../../etc/config");
+    const $loginInput = $("#login");
+    const $passwordInput = $("#password");
+    const $password2Input = $("#password-check");
+    const $emailInput = $("#email");
+    const regexInvalidPasswordSymbols = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s).*$/g;
     const transitionDuration = 400;
-    let similarityCheck = true;
-    let success = false;
+    const similarityCheck = true;
 
     let inputsStatus = {
         inputLoginCheck: false,
@@ -11,68 +16,75 @@ module.exports = (function () {
         inputEmailCheck: false
     };
 
-    const $loginInput = $("#login");
-    const $passwordInput = $("#password");
-    const $password2Input = $("#password-check");
-    const $emailInput = $("#email");
-    const regexInvalidPasswordSymbols = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s).*$/g;
+
+    function showMessageAndColorInput($input, message, check = false) {
+        const $inputBlock = $input.next().hide().text(message);
+
+        if (check) {
+            $inputBlock.css("color", "red").fadeIn(transitionDuration);
+            $input.removeClass("inputGreen").addClass("inputRed");
+        } else {
+            $inputBlock.css("color", "green").fadeIn(transitionDuration);
+            $input.removeClass("inputRed").addClass("inputGreen");
+        }
+    }
 
 
-    function test($input, isValid, similarityCheck) {
+    function checkDataToShowMessageAndColor($input, message, isValid = false, similarityCheck = false) {
+        if (isValid) {
+            showMessageAndColorInput($input, message, isValid);
+        } else if (similarityCheck) {
+            showMessageAndColorInput($input, message, similarityCheck);
+        } else {
+            showMessageAndColorInput($input, message);
+        }
+    }
+
+
+    function createMessageAndCheckInput($input, isValid, similarityCheck) {
+        let message_wrong = `Incorrect `;
+        let message_similarity = ``;
+        let message_success = `Successfully`;
 
         if ($input === $loginInput) {
             if (isValid) {
-                console.log("Неверный  логин");
-                $input.next().hide().text("Неверный  логин").css("color", "red").fadeIn(transitionDuration);
-                $input.removeClass().addClass("inputRed form-control");
+                message_wrong += `login`;
+                checkDataToShowMessageAndColor($input, message_wrong, isValid)
             } else if (similarityCheck) {
-                console.log("Такой логин уже есть!");
-                $input.next().hide().text("Такой логин уже есть!").css("color", "red").fadeIn(transitionDuration);
-                $input.removeClass("inputGreen").addClass("inputRed");
-            } else  {
-                console.log("Логин одобрен");
-                $input.next().hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
-                $input.removeClass("inputRed").addClass("inputGreen");
+                message_similarity = `This login is busy`;
+                checkDataToShowMessageAndColor($input, message_similarity, isValid, similarityCheck)
+            } else {
+                checkDataToShowMessageAndColor($input, message_success)
             }
         } else if ($input === $passwordInput) {
-            console.log("победа!");
             if (isValid) {
-                console.log("Неверный  пароль");
-                $input.next().hide().text("Неверный  пароль").css("color", "red").fadeIn(transitionDuration);
-                $input.removeClass().addClass("inputRed form-control");
+                message_wrong += `password`;
+                checkDataToShowMessageAndColor($input, message_wrong, isValid)
             } else {
-                $passwordInput.next().hide().text("Пароль одобрен").css("color", "green").fadeIn(transitionDuration);
-                $passwordInput.removeClass("inputRed").addClass("inputGreen");
+                checkDataToShowMessageAndColor($input, message_success)
             }
         } else if ($input === $password2Input) {
-            if (isValid) {
-                $input.next().hide().text("Пароль совпадает").css("color", "green").fadeIn(transitionDuration);
-                $input.removeClass("inputRed").addClass("inputGreen");
-
+            if (isValid !== true) {
+                message_wrong = `Password does not look like`;
+                checkDataToShowMessageAndColor($input, message_wrong, true)
             } else {
-                console.log("Пароль не совпадает!");
-                $input.next().hide().text("Пароль не совпадает!").css("color", "red").fadeIn(transitionDuration);
-                $input.removeClass().addClass("inputRed form-control");
+                checkDataToShowMessageAndColor($input, message_success)
             }
         } else if ($input === $emailInput) {
             if (isValid) {
-                console.log("Неверная почта");
-                $input.next().hide().text("Неверная почта").css("color", "red").fadeIn(transitionDuration);
-                $input.removeClass().addClass("inputRed form-control");
+                message_wrong += `email`;
+                checkDataToShowMessageAndColor($input, message_wrong, isValid)
             } else if (similarityCheck) {
-                console.log("Такая почта уже есть!");
-                $input.next().hide().text("Такая почта уже есть!").css("color", "red").fadeIn(transitionDuration);
-                $input.removeClass("inputGreen").addClass("inputRed");
-            } else  {
-                console.log("Почта одобрена");
-                $input.next().hide().text("Почта одобрена").css("color", "green").fadeIn(transitionDuration);
-                $input.removeClass("inputRed").addClass("inputGreen");
+                message_similarity = `This email is busy`;
+                checkDataToShowMessageAndColor($input, message_similarity, isValid, similarityCheck)
+            } else {
+                checkDataToShowMessageAndColor($input, message_success)
             }
         }
     }
 
 
-    //проверка логина
+    //check login
     $loginInput.change(function () {
         let login = $loginInput.val();
         
@@ -81,32 +93,30 @@ module.exports = (function () {
         let isLoginValid = regexInvalidLoginResult === -1;
 
         if (isLoginValid) {
-            console.log("isLoginValid", isLoginValid);
-            test($loginInput, isLoginValid);
-            isLoginValid = false;
+            createMessageAndCheckInput($loginInput, isLoginValid);
+            inputsStatus.inputLoginCheck = false;
+            changeButtonState();
         } else {
             (function GetUsers() {
                 $.ajax({
-                    url: "/api/users",
+                    url: config.api,
                     type: "GET",
                     contentType: "application/json",
                     success: function (users) {
                         if (users.length === 0) {
-                            success = true;
-                            test($loginInput, isLoginValid);
+                            createMessageAndCheckInput($loginInput, isLoginValid);
+                            inputsStatus.inputLoginCheck = true;
                             changeButtonState();
                         }
 
                         $(users).each(function (index, user) {
-
                             if (user.login === login) {
-                                test($loginInput, isLoginValid, similarityCheck);
-
+                                createMessageAndCheckInput($loginInput, isLoginValid, similarityCheck);
+                                inputsStatus.inputLoginCheck = false;
                                 changeButtonState();
                                 return false;
                             } else {
-                                success = true;
-                                test($loginInput, isLoginValid);
+                                createMessageAndCheckInput($loginInput, isLoginValid);
                                 inputsStatus.inputLoginCheck = true;
                                 changeButtonState();
                             }
@@ -118,7 +128,7 @@ module.exports = (function () {
     });
 
 
-    //проверка пароля
+    //check password
     $passwordInput.change(function () {
 
         let password = $passwordInput.val();
@@ -127,15 +137,18 @@ module.exports = (function () {
         let isPasswordValid = regexInvalidPasswordResult === -1;
 
         if (isPasswordValid) {
-            test($passwordInput, isPasswordValid)
+            createMessageAndCheckInput($passwordInput, isPasswordValid);
+            inputsStatus.inputPasswordCheck = false;
+            changeButtonState();
         } else {
-            test($passwordInput);
+            createMessageAndCheckInput($passwordInput);
             inputsStatus.inputPasswordCheck = true;
             changeButtonState();
         }
     });
 
-    //проверка пароля
+
+    //check password2
     $password2Input.change(function () {
         let password = $passwordInput.val();
         let password2 = $password2Input.val();
@@ -147,54 +160,50 @@ module.exports = (function () {
         let isPasswordResult = isPasswordValid === true && isPasswordComparison === true;
 
         if (isPasswordResult) {
-            test($password2Input, isPasswordComparison);
-        } else {
-            test($password2Input);
+            createMessageAndCheckInput($password2Input, isPasswordComparison);
             inputsStatus.inputPassword2Check = true;
+            changeButtonState();
+        } else {
+            createMessageAndCheckInput($password2Input);
+            inputsStatus.inputPassword2Check = false;
             changeButtonState();
         }
     });
 
 
-    //проверка почты
+    //check email
     $emailInput.change(function () {
         let email = $emailInput.val();
-        let regexInvalidEmailSymbols = /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/g;
-        let regexInvalidEmailResult = email.search(regexInvalidEmailSymbols);
+        const regexInvalidEmailSymbols = /^[-\w.]+@([A-z0-9][-A-z0-9]+\.)+[A-z]{2,4}$/g;
+        const regexInvalidEmailResult = email.search(regexInvalidEmailSymbols);
 
         let isEmailValid = regexInvalidEmailResult === -1;
 
         if (isEmailValid) {
-            test($emailInput, isEmailValid);
-            $emailInput.next().hide().text("Неверная почта").css("color", "red").fadeIn(transitionDuration);
-            $emailInput.removeClass().addClass("inputRed form-control");
+            createMessageAndCheckInput($emailInput, isEmailValid);
+            inputsStatus.inputEmailCheck = false;
+            changeButtonState();
         } else {
             (function GetUsers() {
                 $.ajax({
-                    url: "/api/users",
+                    url: config.api,
                     type: "GET",
                     contentType: "application/json",
                     success: function (users) {
                         if (users.length === 0) {
-                            test($emailInput, isEmailValid);
-                            // $emailInput.next().hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
-                            // $emailInput.removeClass("inputRed").addClass("inputGreen");
-                            // inputsStatus.inputEmailCheck = true;
+                            createMessageAndCheckInput($emailInput, isEmailValid);
+                            inputsStatus.inputEmailCheck = true;
                             changeButtonState();
                         }
 
                         $.each(users, function (index, user) {
-
                             if (user.email === email) {
-                                test($emailInput, isEmailValid, similarityCheck);
-                                // $emailInput.next().hide().text("Такая почта уже есть!").css("color", "red").fadeIn(transitionDuration);
-                                // $emailInput.removeClass("inputGreen").addClass("inputRed");
+                                createMessageAndCheckInput($emailInput, isEmailValid, similarityCheck);
+                                inputsStatus.inputEmailCheck = false;
+                                changeButtonState();
                                 return false;
                             } else {
-                                test($emailInput, isEmailValid);
-                                // $emailInput.next().hide().text("Почта одобрена").css("color", "green").fadeIn(transitionDuration);
-                                // $emailInput.removeClass("inputRed").addClass("inputGreen");
-
+                                createMessageAndCheckInput($emailInput, isEmailValid);
                                 inputsStatus.inputEmailCheck = true;
                                 changeButtonState();
                             }
@@ -206,11 +215,10 @@ module.exports = (function () {
     });
 
 
-    function changeButtonState() {
-        if (inputsStatus.inputEmailCheck
-            && inputsStatus.inputPasswordCheck
-            && inputsStatus.inputPassword2Check
-            && inputsStatus.inputLoginCheck) {
+    //check disabled for submit
+    function changeButtonState()  {
+        if (inputsStatus.inputEmailCheck && inputsStatus.inputPasswordCheck
+            && inputsStatus.inputPassword2Check && inputsStatus.inputLoginCheck) {
 
             $("#submit").prop("disabled", false);
         } else {
@@ -219,7 +227,7 @@ module.exports = (function () {
     }
 
 
-    // отправка формы
+    // send form
     $("#formRegistration").submit(function (e) {
         e.preventDefault();
         let login = this.elements["login"].value;
@@ -230,11 +238,10 @@ module.exports = (function () {
     });
 
 
-    // Добавление пользователя
+    // add user
     function CreateUser(login, password, email) {
-        console.log("ajax1");
         $.ajax({
-            url: "/api/users",
+            url: config.api,
             contentType: "application/json",
             method: "POST",
             data: JSON.stringify({

@@ -1,0 +1,19 @@
+{
+  "localhost": "http://localhost:3000",
+  "serverPort": "3000",
+  "api": "/api/users",
+  "apiDB": "mongodb://localhost:27017/",
+  "service": "yandex",
+  "userEmail": "testdarg",
+  "userPassword": "runesofmagic",
+  "verify": "/verifyUserEmail.html",
+  "message": {
+    "from": "Server <testdarg@yandex.ru>",
+    "subject": "Registration",
+    "text": "Confirm registration"
+  },
+  "db": {
+    "name": "usersdb",
+    "collection": "users"
+  }
+}
