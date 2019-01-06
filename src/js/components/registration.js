@@ -1,5 +1,6 @@
 module.exports = (function () {
     const md5 = require("./md5");
+    const transitionDuration = 400;
 
     let inputsStatus = {
         loginCheck: 0,
@@ -13,11 +14,13 @@ module.exports = (function () {
     $("#login").change(function () {
         const $loginInput = $("#login");
         let login = $loginInput.val();
-        let regexInvalidLoginSymbols = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s).*$/g;
-        let isLoginValid = login.search(regexInvalidLoginSymbols);
+        
+        const regexInvalidLoginSymbols = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s).*$/g;
+        const regexInvalidLoginResult = login.search(regexInvalidLoginSymbols);
+        const isLoginValid = regexInvalidLoginResult === -1; 
 
-        if (isLoginValid === -1) {
-            $loginInput.next().hide().text("Неверный  логин").css("color", "red").fadeIn(400);
+        if (isLoginValid) {
+            $loginInput.next().hide().text("Неверный  логин").css("color", "red").fadeIn(transitionDuration);
             $loginInput.removeClass().addClass("inputRed form-control");
         } else {
             (function GetUsers() {
@@ -28,7 +31,7 @@ module.exports = (function () {
                     success: function (users) {
                         if (users.length === 0) {
                             const $statusAnyInput = $loginInput.next();
-                            $statusAnyInput.hide().text("Логин одобрен").css("color", "green").fadeIn(400);
+                            $statusAnyInput.hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
 
                             $loginInput.removeClass("inputRed").addClass("inputGreen");
                             inputsStatus.loginCheck = 1;
@@ -41,11 +44,11 @@ module.exports = (function () {
                             console.log("user", user);
 
                             if (user.login === login) {
-                                $loginInput.next().hide().text("Такой логин уже есть!").css("color", "red").fadeIn(400);
+                                $loginInput.next().hide().text("Такой логин уже есть!").css("color", "red").fadeIn(transitionDuration);
                                 $loginInput.removeClass("inputGreen").addClass("inputRed");
                                 return false;
                             } else {
-                                $loginInput.next().hide().text("Логин одобрен").css("color", "green").fadeIn(400);
+                                $loginInput.next().hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
                                 $loginInput.removeClass("inputRed").addClass("inputGreen");
                                 inputsStatus.loginCheck = 1;
                                 changeButtonState();
@@ -66,10 +69,10 @@ module.exports = (function () {
         let resPassword = password.search(expPassword);
 
         if (resPassword === -1) {
-            IdPassword.next().hide().text("Неверный  пароль").css("color", "red").fadeIn(400);
+            IdPassword.next().hide().text("Неверный  пароль").css("color", "red").fadeIn(transitionDuration);
             IdPassword.removeClass().addClass("inputRed form-control");
         } else {
-            IdPassword.next().hide().text("Пароль одобрен").css("color", "green").fadeIn(400);
+            IdPassword.next().hide().text("Пароль одобрен").css("color", "green").fadeIn(transitionDuration);
             IdPassword.removeClass("inputRed").addClass("inputGreen");
             inputsStatus.passwordCheck = 1;
             changeButtonState();
@@ -88,10 +91,10 @@ module.exports = (function () {
         let resPassword2 = password2.search(expPassword2);
 
         if (resPassword2 !== -1 && password !== password2) {
-            IdPassword2.next().hide().text("Неверный  пароль").css("color", "red").fadeIn(400);
+            IdPassword2.next().hide().text("Неверный  пароль").css("color", "red").fadeIn(transitionDuration);
             IdPassword2.removeClass().addClass("inputRed form-control");
         } else {
-            IdPassword2.next().hide().text("Пароль одобрен").css("color", "green").fadeIn(400);
+            IdPassword2.next().hide().text("Пароль одобрен").css("color", "green").fadeIn(transitionDuration);
             IdPassword2.removeClass("inputRed").addClass("inputGreen");
             inputsStatus.password2Check = 1;
             changeButtonState();
@@ -107,7 +110,7 @@ module.exports = (function () {
         let resEmail = login.search(expEmail);
 
         if (resEmail === -1) {
-            IdEmail.next().hide().text("Неверная почта").css("color", "red").fadeIn(400);
+            IdEmail.next().hide().text("Неверная почта").css("color", "red").fadeIn(transitionDuration);
             IdEmail.removeClass().addClass("inputRed form-control");
         } else {
             (function GetUsers() {
@@ -117,7 +120,7 @@ module.exports = (function () {
                     contentType: "application/json",
                     success: function (users) {
                         if (users.length === 0) {
-                            IdEmail.next().hide().text("Логин одобрен").css("color", "green").fadeIn(400);
+                            IdEmail.next().hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
                             IdEmail.removeClass("inputRed").addClass("inputGreen");
                             inputsStatus.emailCheck = 1;
                             changeButtonState();
@@ -126,11 +129,11 @@ module.exports = (function () {
                         $.each(users, function (index, user) {
 
                             if (user.email === email) {
-                                IdEmail.next().hide().text("Такая почта уже есть!").css("color", "red").fadeIn(400);
+                                IdEmail.next().hide().text("Такая почта уже есть!").css("color", "red").fadeIn(transitionDuration);
                                 IdEmail.removeClass("inputGreen").addClass("inputRed");
                                 return false;
                             } else {
-                                IdEmail.next().hide().text("Почта одобрена").css("color", "green").fadeIn(400);
+                                IdEmail.next().hide().text("Почта одобрена").css("color", "green").fadeIn(transitionDuration);
                                 IdEmail.removeClass("inputRed").addClass("inputGreen");
 
                                 inputsStatus.emailCheck = 1;
