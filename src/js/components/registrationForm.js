@@ -62,6 +62,10 @@ module.exports = (function () {
 
                     const statusMessage = $input.data(`status-${statusCode}`);
 
+                    $input
+                        .removeClass(isValid ? "error" : "success")
+                        .addClass(isValid ? "success" : "error");
+
                     $status.fadeOut(transitionDuration, function () {
                         $(this)
                             .removeClass(isValid ? "error" : "success")
