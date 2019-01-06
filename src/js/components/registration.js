@@ -1,13 +1,52 @@
 module.exports = (function () {
     const md5 = require("./md5");
     const transitionDuration = 400;
+    let similarityCheck = true;
+    const success = true;
 
     let inputsStatus = {
-        loginCheck: 0,
-        passwordCheck: 0,
-        password2Check: 0,
-        emailCheck: 0
+        inputLoginCheck: false,
+        inputPasswordCheck: false,
+        inputPassword2Check: false,
+        inputEmailCheck: false
     };
+
+    //$input, $statusAnyInput, isValid, similarityCheck
+    function test($input, isValid = false, success = false, similarityCheck = false) {
+
+        // console.log("...args", ...args);
+        console.log("$input", $input);
+        console.log("isValid", isValid);
+        console.log("success", success);
+        console.log("similarityCheck", similarityCheck);
+
+        if ($input) {
+            console.log(1);
+            if (isValid) {
+                console.log("Неверный  логин");
+                $input.next().hide().text("Неверный  логин").css("color", "red").fadeIn(transitionDuration);
+                $input.removeClass().addClass("inputRed form-control");
+            } else if (similarityCheck) {
+                console.log("Такой логин уже есть!");
+                $input.next().hide().text("Такой логин уже есть!").css("color", "red").fadeIn(transitionDuration);
+                $input.removeClass("inputGreen").addClass("inputRed");
+            } else if (success) {
+                console.log("Логин одобрен");
+                $input.next().hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
+                $input.removeClass("inputRed").addClass("inputGreen");
+            }
+            // } else {
+            //     console.log(1)
+            //     //  } else if (success) {
+            //     //      console.log("Логин одобрен");
+            //     //      $input.next().hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
+            //     //      $input.removeClass("inputRed").addClass("inputGreen");
+            //     //      inputsStatus.inputLoginCheck = true;
+            //     //  }
+            //     // }
+            // }
+        }
+    }
 
 
     //проверка логина
@@ -17,11 +56,12 @@ module.exports = (function () {
         
         const regexInvalidLoginSymbols = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s).*$/g;
         const regexInvalidLoginResult = login.search(regexInvalidLoginSymbols);
-        const isLoginValid = regexInvalidLoginResult === -1; 
+        const isLoginValid = regexInvalidLoginResult === -1;
 
         if (isLoginValid) {
-            $loginInput.next().hide().text("Неверный  логин").css("color", "red").fadeIn(transitionDuration);
-            $loginInput.removeClass().addClass("inputRed form-control");
+            test($loginInput, true);
+            // $loginInput.next().hide().text("Неверный  логин").css("color", "red").fadeIn(transitionDuration);
+            // $loginInput.removeClass().addClass("inputRed form-control");
         } else {
             (function GetUsers() {
                 $.ajax({
@@ -30,28 +70,40 @@ module.exports = (function () {
                     contentType: "application/json",
                     success: function (users) {
                         if (users.length === 0) {
-                            const $statusAnyInput = $loginInput.next();
-                            $statusAnyInput.hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
-
-                            $loginInput.removeClass("inputRed").addClass("inputGreen");
-                            inputsStatus.loginCheck = 1;
+                            test($loginInput, false, true, false);
+                            // const $statusAnyInput = $loginInput.next();
+                            // $statusAnyInput.hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
+                            //
+                            // $loginInput.removeClass("inputRed").addClass("inputGreen");
+                            // inputsStatus.inputLoginCheck = true;
 
                             changeButtonState();
                         }
 
                         $(users).each(function (index, user) {
-                            console.log("users", users);
-                            console.log("user", user);
+                            // console.log("users", users);
+                            // console.log("user", user);
 
                             if (user.login === login) {
-                                $loginInput.next().hide().text("Такой логин уже есть!").css("color", "red").fadeIn(transitionDuration);
-                                $loginInput.removeClass("inputGreen").addClass("inputRed");
+                                console.log(2);
+                                test($loginInput, false, false, true);
+                                // $loginInput.next().hide().text("Такой логин уже есть!").css("color", "red").fadeIn(transitionDuration);
+                                // $loginInput.removeClass("inputGreen").addClass("inputRed");
+                                // return false;
                                 return false;
                             } else {
-                                $loginInput.next().hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
-                                $loginInput.removeClass("inputRed").addClass("inputGreen");
-                                inputsStatus.loginCheck = 1;
-                                changeButtonState();
+                                test($loginInput, false, true, false);
+                                // return false;
+                                // let a = 1, b = 2, c = 3;
+                                // test(...[a, b, c]);
+                                // console.log("!!!");
+                                // test(...[a, b]);
+                                // console.log("!!!");
+                                // $loginInput.next().hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
+                                // $loginInput.removeClass("inputRed").addClass("inputGreen");
+                                // return false;
+                                // inputsStatus.inputLoginCheck = true;
+                                // changeButtonState();
                             }
                         });
                     }
@@ -74,7 +126,7 @@ module.exports = (function () {
         } else {
             IdPassword.next().hide().text("Пароль одобрен").css("color", "green").fadeIn(transitionDuration);
             IdPassword.removeClass("inputRed").addClass("inputGreen");
-            inputsStatus.passwordCheck = 1;
+            inputsStatus.inputPasswordCheck = true;
             changeButtonState();
         }
     });
@@ -96,7 +148,7 @@ module.exports = (function () {
         } else {
             IdPassword2.next().hide().text("Пароль одобрен").css("color", "green").fadeIn(transitionDuration);
             IdPassword2.removeClass("inputRed").addClass("inputGreen");
-            inputsStatus.password2Check = 1;
+            inputsStatus.inputPassword2Check = true;
             changeButtonState();
         }
     });
@@ -122,7 +174,7 @@ module.exports = (function () {
                         if (users.length === 0) {
                             IdEmail.next().hide().text("Логин одобрен").css("color", "green").fadeIn(transitionDuration);
                             IdEmail.removeClass("inputRed").addClass("inputGreen");
-                            inputsStatus.emailCheck = 1;
+                            inputsStatus.inputEmailCheck = true;
                             changeButtonState();
                         }
 
@@ -136,7 +188,7 @@ module.exports = (function () {
                                 IdEmail.next().hide().text("Почта одобрена").css("color", "green").fadeIn(transitionDuration);
                                 IdEmail.removeClass("inputRed").addClass("inputGreen");
 
-                                inputsStatus.emailCheck = 1;
+                                inputsStatus.inputEmailCheck = true;
                                 changeButtonState();
                             }
                         });
@@ -148,11 +200,10 @@ module.exports = (function () {
 
 
     function changeButtonState() {
-        console.log("changeButtonState");
-        if (inputsStatus.emailCheck === 1
-            && inputsStatus.passwordCheck === 1
-            && inputsStatus.password2Check === 1
-            && inputsStatus.loginCheck === 1) {
+        if (inputsStatus.inputEmailCheck
+            && inputsStatus.inputPasswordCheck
+            && inputsStatus.inputPassword2Check
+            && inputsStatus.inputLoginCheck) {
 
             $("#submit").prop("disabled", false);
         } else {
