@@ -103,6 +103,7 @@ module.exports = (function () {
                     type: "GET",
                     contentType: "application/json",
                     success: function (users) {
+                        console.log("users", users);
                         if (users.length === 0) {
                             createMessageAndCheckInput($loginInput, isLoginValid);
                             inputsStatus.inputLoginCheck = true;
