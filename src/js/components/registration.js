@@ -13,10 +13,10 @@ module.exports = (function () {
     $("#login").change(function () {
         const $loginInput = $("#login");
         let login = $loginInput.val();
-        let expLogin = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s).*$/g;
-        let resLogin = login.search(expLogin);
+        let regexInvalidLoginSymbols = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\s).*$/g;
+        let isLoginValid = login.search(regexInvalidLoginSymbols);
 
-        if (resLogin === -1) {
+        if (isLoginValid === -1) {
             $loginInput.next().hide().text("Неверный  логин").css("color", "red").fadeIn(400);
             $loginInput.removeClass().addClass("inputRed form-control");
         } else {
