@@ -4,8 +4,8 @@
   "api": "/api/users",
   "apiDB": "mongodb://localhost:27017/",
   "service": "yandex",
-  "userEmail": "testdarg",
-  "userPassword": "runesofmagic",
+  "userEmail": "test",
+  "userPassword": "test",
   "verify": "/verifyUserEmail.html",
   "message": {
     "from": "Server <testdarg@yandex.ru>",
