@@ -1,6 +1,7 @@
 # Test Registration Gulp + NodeJs + MongoDB
 
 ## Installation
+```
 npm i
 ```
 
